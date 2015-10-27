@@ -1,0 +1,19 @@
+{
+  "name": "Xiaobai Translation",
+  "description": "youdao dictionary plug-in",
+  "version": "1.0",
+  "permissions": [
+      "tabs", "http://*/*", "https://*/*"
+  ],
+  "browser_action": {
+      "default_title": "Xiaobai Translation",
+      "default_icon": "images/icon.png"
+  },
+  "manifest_version": 2,
+  "content_scripts": [
+    {
+      "matches": ["http://*/*","https://*/*"],
+      "js": ["jquery-1.10.2.min.js", "run.js"]
+    }
+  ]
+}
