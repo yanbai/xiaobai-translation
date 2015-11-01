@@ -21,17 +21,16 @@ document.onmouseup = document.ondbclick= function(event){
 };
 var transBox = function (txt){
     this.txt = txt;
-    this.box = document.createElement("div");
     this.isTranslated = false;
     this.translatedObj = {};
-
+    this.box = document.createElement("div");
     this.content = document.createElement("div");
-    
     this.init();
 };
 transBox.prototype = {
     init:function(){
         this.box.innerHTML = "译";
+        this.content.innerHTML = "loading...";
         this.setDefaultStyle();
         this.listenHandler();
         document.body.appendChild(this.box);
@@ -53,6 +52,7 @@ transBox.prototype = {
         this.content.style.background = "#fff";
         this.content.style.padding = "5px 10px";
         this.content.style.zIndex = "100";
+          
     },
     setStyle:function(styleOb){
         $(this.box).css({
@@ -66,43 +66,41 @@ transBox.prototype = {
     },
     listenHandler:function(){
         var t = this;
-        this.box.onmouseover = function(){
-            setTimeout(function(){
-                if(t.isTranslated){
-                    t.showContent();
-                }else{
-                    getData(t.txt,function(d){
-                        console.log(d);
-                        t.translatedObj = d;
-                        t.isTranslated = true;
-                        var txt = "";
-                        if(d.basic) {
-                            var explains = d.basic.explains;
-                            explains.forEach(function(item){
-                                txt += item+"<br>";
-                            })
-                        }else {
-                            var translation = d.translation;
-                            translation.forEach(function(item){
-                                txt += item+"<br>";
-                            })
-                        }
-                        
-                        t.addData(txt);
-                        t.showContent();
+        var showData = function(){
+            t.showContent();
+            getData(t.txt,function(d){
+                t.translatedObj = d;
+                t.isTranslated = true;
+                var txt = "";
+                if(d.basic) {
+                    var explains = d.basic.explains;
+                    explains.forEach(function(item){
+                        txt += item+"<br>";
+                    })
+                }else {
+                    var translation = d.translation;
+                    translation.forEach(function(item){
+                        txt += item+"<br>";
                     })
                 }
-            },200);
+                t.emptyData();
+                t.addData(txt);
+            });
         };
-
+        var timer = null;
+        this.box.onmouseover = function(){
+            timer = setTimeout(showData,500);
+        };
         this.box.onmouseout = function(){
-            // t.hideContent();
+            clearTimeout(timer)
         }
     },
     addData:function(txt){
         this.content.innerHTML = txt;
     },
-
+    emptyData:function(txt){
+        this.content.innerHTML = '';
+    },
     contentHide:function(){
         this.content.style.display = "none";
     },
@@ -120,7 +118,33 @@ transBox.prototype = {
     },
     showContent:function(){
         this.content.style.display = "block";
-    }
+    },
+
+    // not used
+    isMouseInBox:function(e){
+        var rect = this.box.getBoundingClientRect();
+        console.log(rect);
+        console.log(e);
+        mouseLeft = e.pageX;
+        mouseTop = e.pageY;
+        var rect_left = rect.left + document.body.scrollLeft,
+            rect_right = rect.right + document.body.scrollLeft,
+            rect_top = rect.top + document.body.scrollTop,
+            rect_bottom = rect.bottom + document.body.scrollTop;
+        console.log(rect_top +','+ rect_bottom);
+        console.log(mouseTop);
+        console.log(document.body.scrollTop);
+        console.log(mouseLeft < rect_right && mouseLeft > rect_left);
+        console.log(mouseTop < rect_bottom && mouseTop > rect_top);
+        
+        if(mouseLeft < rect_right && mouseLeft > rect_left && mouseTop < rect_bottom && mouseTop > rect_top) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+
 }
 
 function getData(str,cb){
@@ -129,6 +153,8 @@ function getData(str,cb){
         success:cb
     })
 }
+
+// not used
 function showExtension(img){
     var imgURL = chrome.extension.getURL("images/test.png");
     img.src = imgURL;
